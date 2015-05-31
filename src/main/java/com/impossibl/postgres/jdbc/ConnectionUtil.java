@@ -39,6 +39,7 @@ import static com.impossibl.postgres.system.Settings.CLIENT_ENCODING;
 import static com.impossibl.postgres.system.Settings.CREDENTIALS_PASSWORD;
 import static com.impossibl.postgres.system.Settings.CREDENTIALS_USERNAME;
 import static com.impossibl.postgres.system.Settings.DATABASE_URL;
+import io.netty.channel.unix.DomainSocketAddress;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -164,6 +165,34 @@ class ConnectionUtil {
       }
       if (enableHousekeeper)
         housekeeper = ThreadedHousekeeper.acquire();
+    }
+    
+    if (settings.containsKey("unixsocketdir")) {
+        String unixSocketDir = (String)settings.get("unixsocketdir");
+        if (unixSocketDir == null || unixSocketDir.isEmpty()) {
+            unixSocketDir = "/tmp";
+        }
+        // TODO: We should get the port number from the URL here:
+        String unixSocketPath = unixSocketDir + "/.s.PGSQL.5432";
+        DomainSocketAddress address = new DomainSocketAddress(unixSocketPath);
+        try {
+
+            PGConnectionImpl conn = new PGConnectionImpl(address, settings, housekeeper);
+
+            conn.init();
+
+            return conn;
+
+          }
+          catch (IOException e) {
+
+            lastException = new SQLException("Connection Error: " + e.getMessage(), e);
+          }
+          catch (NoticeException e) {
+
+            lastException = makeSQLException("Connection Error: ", e.getNotice());
+          }
+        throw lastException;
     }
 
     // Try to connect to each provided address in turn returning the first

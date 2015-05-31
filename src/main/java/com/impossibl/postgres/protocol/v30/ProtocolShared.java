@@ -33,11 +33,12 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static java.lang.Runtime.getRuntime;
-
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
+import io.netty.channel.epoll.EpollDomainSocketChannel;
+import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
@@ -98,12 +99,12 @@ public class ProtocolShared {
 
   private void init() {
     int workerCount = getRuntime().availableProcessors();
-    NioEventLoopGroup group = new NioEventLoopGroup(workerCount, new NamedThreadFactory("PG-JDBC EventLoop"));
+    EpollEventLoopGroup group = new EpollEventLoopGroup(workerCount, new NamedThreadFactory("PG-JDBC EventLoop"));
 
     bootstrap = new Bootstrap();
-    bootstrap.group(group).channel(NioSocketChannel.class).handler(new ChannelInitializer<SocketChannel>() {
+    bootstrap.group(group).channel(EpollDomainSocketChannel.class).handler(new ChannelInitializer<EpollDomainSocketChannel>() {
       @Override
-      protected void initChannel(SocketChannel ch) throws Exception {
+      protected void initChannel(EpollDomainSocketChannel ch) throws Exception {
         ch.pipeline().addLast(new MessageDecoder(), new MessageHandler());
       }
     }).option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);

@@ -62,6 +62,7 @@ import java.io.InterruptedIOException;
 import java.lang.ref.WeakReference;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.net.SocketAddress;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -75,7 +76,6 @@ import java.util.logging.Logger;
 import static java.util.Arrays.asList;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.logging.Level.FINEST;
-
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFutureListener;
@@ -191,7 +191,7 @@ public class ProtocolImpl implements Protocol {
 
   };
 
-  private final InetSocketAddress remote;
+  private final SocketAddress remote;
   AtomicBoolean connected = new AtomicBoolean(true);
   ProtocolShared.Ref sharedRef;
   Channel channel;
@@ -207,7 +207,7 @@ public class ProtocolImpl implements Protocol {
     this.channel = channel;
     this.contextRef = new WeakReference<>(context);
     this.txStatus = Idle;
-    this.remote = (InetSocketAddress) channel.remoteAddress();
+    this.remote = channel.remoteAddress();
   }
 
   public BasicContext getContext() {
@@ -647,21 +647,21 @@ public class ProtocolImpl implements Protocol {
 
     logger.finest("OPEN-SOCKET");
 
-    try (Socket abortSocket = new Socket(remote.getAddress(), remote.getPort())) {
-
-      logger.finest("SEND-DATA");
-
-      DataOutputStream os = new DataOutputStream(abortSocket.getOutputStream());
-
-      os.writeInt(16);
-      os.writeInt(80877102);
-      os.writeInt(keyData.processId);
-      os.writeInt(keyData.secretKey);
-
-    }
-    catch (IOException e) {
-      //Ignore...
-    }
+//    try (Socket abortSocket = new Socket(remote.getAddress(), remote.getPort())) {
+//
+//      logger.finest("SEND-DATA");
+//
+//      DataOutputStream os = new DataOutputStream(abortSocket.getOutputStream());
+//
+//      os.writeInt(16);
+//      os.writeInt(80877102);
+//      os.writeInt(keyData.processId);
+//      os.writeInt(keyData.secretKey);
+//
+//    }
+//    catch (IOException e) {
+//      //Ignore...
+//    }
 
   }
 
